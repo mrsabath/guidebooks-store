@@ -65,15 +65,13 @@ spec:
           # allowPrivilegeEscalation: false
           # privileged is needed to create socket and bundle files
           privileged: true
-
-          volumeMounts:
-            # access to SPIRE Agent:
-            - name: spire-agent-socket
-              mountPath: /run/spire/sockets
-              readOnly: true
-            - name: db-config
-              mountPath: /run/db
-
+        volumeMounts:
+          # access to SPIRE Agent:
+          - name: spire-agent-socket
+            mountPath: /run/spire/sockets
+            readOnly: true
+          - name: db-config
+            mountPath: /run/db
       - name: ray-worker
         image: {{ .Values.image }}
         imagePullPolicy: IfNotPresent
