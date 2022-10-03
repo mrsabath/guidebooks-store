@@ -59,13 +59,6 @@ spec:
         imagePullPolicy: Always
         command: ["sleep"]
         args: ["1000000000"]
-      - name: ray-worker
-        image: {{ .Values.image }}
-        imagePullPolicy: IfNotPresent
-        command: ["/bin/bash", "-c", "--"]
-        args:
-          - {{ print "ray start --num-cpus=" .Values.podTypes.rayWorkerType.CPUInteger " --num-gpus=" .Values.podTypes.rayWorkerType.GPU " --address=" (include "ray.headService" .) ":6379 --object-manager-port=22345 --node-manager-port=22346 --block" }}
-
         # make openshift local happy
         securityContext:
           # runAsNonRoot: true
@@ -73,17 +66,25 @@ spec:
           # privileged is needed to create socket and bundle files
           privileged: true
 
+          volumeMounts:
+            # access to SPIRE Agent:
+            - name: spire-agent-socket
+              mountPath: /run/spire/sockets
+              readOnly: true
+            - name: db-config
+              mountPath: /run/db
+
+      - name: ray-worker
+        image: {{ .Values.image }}
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/bash", "-c", "--"]
+        args:
+          - {{ print "ray start --num-cpus=" .Values.podTypes.rayWorkerType.CPUInteger " --num-gpus=" .Values.podTypes.rayWorkerType.GPU " --address=" (include "ray.headService" .) ":6379 --object-manager-port=22345 --node-manager-port=22346 --block" }}
+
         # This volume allocates shared memory for Ray to use for its plasma
         # object store. If you do not provide this, Ray will fall back to
         # /tmp which cause slowdowns if is not a shared memory volume.
         volumeMounts:
-          # access to SPIRE Agent:
-          - name: spire-agent-socket
-            mountPath: /run/spire/sockets
-            readOnly: true
-          - name: db-config
-            mountPath: /run/db
-
           - mountPath: /dev/shm
             name: dshm
         {{- if .Values.pvcs }}
