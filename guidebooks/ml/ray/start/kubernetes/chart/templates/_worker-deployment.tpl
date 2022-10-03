@@ -14,6 +14,7 @@ spec:
   template:
     metadata:
       labels:
+        identity_template: "true"
         component: ray-worker
         type: ray
         appwrapper.mcad.ibm.com: {{ .Values.clusterName }}
