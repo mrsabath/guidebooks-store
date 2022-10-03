@@ -26,6 +26,7 @@ spec:
         {{ if eq .Values.mcad.scheduler "coscheduler" }}
         pod-group.scheduling.sigs.k8s.io: {{ include "ray.podgroup" . }}
         {{ end }}
+
     spec:
       {{ if eq .Values.mcad.scheduler "coscheduler" }}
       schedulerName: scheduler-plugins-scheduler
@@ -33,6 +34,12 @@ spec:
 
       restartPolicy: Always
       volumes:
+      - name: spire-agent-socket
+        hostPath:
+          path: /run/spire/sockets
+          type: Directory
+      - name: db-config
+        emptyDir: {}
       - name: dshm
         emptyDir:
           medium: Memory
@@ -46,6 +53,12 @@ spec:
       {{- end }}
       {{- end }}
       containers:
+      - name: apps-sidecar
+        # image: us.gcr.io/scytale-registry/aws-cli:latest
+        image: tsidentity/tornjak-example-sidecar:v0.1
+        imagePullPolicy: Always
+        command: ["sleep"]
+        args: ["1000000000"]
       - name: ray-worker
         image: {{ .Values.image }}
         imagePullPolicy: IfNotPresent
@@ -55,13 +68,22 @@ spec:
 
         # make openshift local happy
         securityContext:
-          runAsNonRoot: true
-          allowPrivilegeEscalation: false
+          # runAsNonRoot: true
+          # allowPrivilegeEscalation: false
+          # privileged is needed to create socket and bundle files
+          privileged: true
 
         # This volume allocates shared memory for Ray to use for its plasma
         # object store. If you do not provide this, Ray will fall back to
         # /tmp which cause slowdowns if is not a shared memory volume.
         volumeMounts:
+          # access to SPIRE Agent:
+          - name: spire-agent-socket
+            mountPath: /run/spire/sockets
+            readOnly: true
+          - name: db-config
+            mountPath: /run/db
+
           - mountPath: /dev/shm
             name: dshm
         {{- if .Values.pvcs }}
