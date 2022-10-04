@@ -1,4 +1,14 @@
 {{- define "worker-deployment" -}}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: path-to-inputfile
+data:
+  inputfile.txt: |
+    gto/aws.json
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -34,12 +44,16 @@ spec:
 
       restartPolicy: Always
       volumes:
+      - name: mount-inputfile
+        configMap:
+          name: path-to-inputfile
       - name: spire-agent-socket
         hostPath:
           path: /run/spire/sockets
           type: Directory
       - name: db-config
         emptyDir: {}
+
       - name: dshm
         emptyDir:
           medium: Memory
@@ -57,8 +71,20 @@ spec:
         # image: us.gcr.io/scytale-registry/aws-cli:latest
         image: tsidentity/tornjak-example-sidecar:v0.1
         imagePullPolicy: Always
-        command: ["sleep"]
-        args: ["1000000000"]
+        # command: ["sleep"]
+        # args: ["1000000000"]
+        command: ["/usr/local/bin/run-sidecar-bash.sh"]
+        args:
+          - "/usr/local/bin/inputfile.txt"
+        env:
+        - name: SOCKETFILE
+          value: "/run/spire/sockets/agent.sock"
+        - name: ROLE
+          value: "dbrole"
+        - name: VAULT_ADDR
+          # Provide address to your VAULT server
+          value: "http://{{vault-address.cloud}}"
+
         # make openshift local happy
         securityContext:
           # runAsNonRoot: true
@@ -72,6 +98,10 @@ spec:
             readOnly: true
           - name: db-config
             mountPath: /run/db
+          - name: mount-inputfile
+            mountPath: /usr/local/bin/inputfile.txt
+            subPath: inputfile.txt
+
       - name: ray-worker
         image: {{ .Values.image }}
         imagePullPolicy: IfNotPresent
@@ -83,6 +113,11 @@ spec:
         # object store. If you do not provide this, Ray will fall back to
         # /tmp which cause slowdowns if is not a shared memory volume.
         volumeMounts:
+          - mountPath: /home/ray/aws.json
+            name: db-config
+            readOnly: true
+            subPath: aws.json
+
           - mountPath: /dev/shm
             name: dshm
         {{- if .Values.pvcs }}
