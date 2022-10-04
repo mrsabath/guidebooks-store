@@ -70,11 +70,11 @@ spec:
         # image: us.gcr.io/scytale-registry/aws-cli:latest
         image: tsidentity/tornjak-example-sidecar:v0.1
         imagePullPolicy: Always
-        # command: ["sleep"]
-        # args: ["1000000000"]
-        command: ["/usr/local/bin/run-sidecar-bash.sh"]
-        args:
-          - "/usr/local/bin/inputfile.txt"
+        command: ["sleep"]
+        args: ["1000000000"]
+        #command: ["/usr/local/bin/run-sidecar-bash.sh"]
+        #args:
+        #  - "/usr/local/bin/inputfile.txt"
         env:
         - name: SOCKETFILE
           value: "/run/spire/sockets/agent.sock"
@@ -111,9 +111,9 @@ spec:
         # object store. If you do not provide this, Ray will fall back to
         # /tmp which cause slowdowns if is not a shared memory volume.
         volumeMounts:
-          #- mountPath: /home/ray
-          #  name: db-config
-          #  readOnly: true
+          - mountPath: /home/ray
+            name: db-config
+            readOnly: true
           - mountPath: /dev/shm
             name: dshm
         {{- if .Values.pvcs }}
