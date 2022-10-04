@@ -53,7 +53,6 @@ spec:
           type: Directory
       - name: db-config
         emptyDir: {}
-
       - name: dshm
         emptyDir:
           medium: Memory
@@ -115,8 +114,6 @@ spec:
           - mountPath: /home/ray
             name: db-config
             readOnly: true
-            # subPath: aws.json
-
           - mountPath: /dev/shm
             name: dshm
         {{- if .Values.pvcs }}
