@@ -84,8 +84,6 @@ spec:
         - name: VAULT_ADDR
           # Provide address to your VAULT server
           value: "http://tsi-vault-tsi-vault.gto-demo-02-9d995c4a8c7c5f281ce13d5467ff6a94-0000.us-east.containers.appdomain.cloud"
-          # value: "http://{{vault-address.cloud}}"
-
         # make openshift local happy
         securityContext:
           # runAsNonRoot: true
