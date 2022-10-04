@@ -111,7 +111,7 @@ spec:
         # object store. If you do not provide this, Ray will fall back to
         # /tmp which cause slowdowns if is not a shared memory volume.
         volumeMounts:
-          - mountPath: /home/ray
+          - mountPath: /home/aws
             name: db-config
             readOnly: true
           - mountPath: /dev/shm
