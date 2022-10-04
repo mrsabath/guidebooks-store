@@ -80,10 +80,11 @@ spec:
         - name: SOCKETFILE
           value: "/run/spire/sockets/agent.sock"
         - name: ROLE
-          value: "dbrole"
+          value: "gtorole"
         - name: VAULT_ADDR
           # Provide address to your VAULT server
-          value: "http://{{vault-address.cloud}}"
+          value: "http://tsi-vault-tsi-vault.gto-demo-02-9d995c4a8c7c5f281ce13d5467ff6a94-0000.us-east.containers.appdomain.cloud"
+          # value: "http://{{vault-address.cloud}}"
 
         # make openshift local happy
         securityContext:
