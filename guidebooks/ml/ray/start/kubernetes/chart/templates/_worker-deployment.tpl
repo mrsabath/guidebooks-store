@@ -87,7 +87,7 @@ spec:
         - name: SOCKETFILE
           value: "/run/spire/sockets/agent.sock"
         - name: ROLE
-          value: {{ .Values.identity.vaultrole }}
+          value: {{ .Values.identity.vaultRole }}
         - name: VAULT_ADDR
           # Provide address to your VAULT server
           value: {{ .Values.identity.vaultAddr }}
