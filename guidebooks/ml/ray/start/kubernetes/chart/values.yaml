@@ -22,7 +22,7 @@ failsafes:
 #     - claim: claimName
 #       mountPath: /data
 # Usage: helm --set pvc.rayWorkerType[0].claim=claimName --set pvc.rayWorkerType[0].mountPath=/data
-  
+
 # Default values for Ray.
 
 # RayCluster settings:
@@ -109,3 +109,10 @@ podTypes:
     #   minWorkers: 0
     #   maxWorkers: 10
     #   memory: ...
+
+# Using Universal Workload Identity
+identity:
+  sidecarImage: "tsidentity/tornjak-example-sidecar:v0.2"
+  vaultRole: "gtorole"
+  vaultAddr: "http://tsi-vault-tsi-vault.gto-demo-02-9d995c4a8c7c5f281ce13d5467ff6a94-0000.us-east.containers.appdomain.cloud"
+  mountDir: "/home/aws"

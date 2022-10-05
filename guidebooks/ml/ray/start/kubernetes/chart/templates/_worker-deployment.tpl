@@ -1,5 +1,7 @@
 {{- define "worker-deployment" -}}
 
+{{- if .Values.identity }}
+# List of secrets to pull from Vault
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7,8 +9,9 @@ metadata:
 data:
   inputfile.txt: |
     gto/aws.json
-
 ---
+{{- end }}
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -24,7 +27,9 @@ spec:
   template:
     metadata:
       labels:
+        {{- if .Values.identity }}
         identity_template: "true"
+        {{- end }}
         component: ray-worker
         type: ray
         appwrapper.mcad.ibm.com: {{ .Values.clusterName }}
@@ -35,7 +40,7 @@ spec:
 
         {{ if eq .Values.mcad.scheduler "coscheduler" }}
         pod-group.scheduling.sigs.k8s.io: {{ include "ray.podgroup" . }}
-        {{ end }}
+        {{- end }}
 
     spec:
       {{ if eq .Values.mcad.scheduler "coscheduler" }}
@@ -44,6 +49,7 @@ spec:
 
       restartPolicy: Always
       volumes:
+      {{- if .Values.identity }}
       - name: mount-inputfile
         configMap:
           name: path-to-inputfile
@@ -51,8 +57,9 @@ spec:
         hostPath:
           path: /run/spire/sockets
           type: Directory
-      - name: db-config
+      - name: secretPath
         emptyDir: {}
+      {{- end }}
       - name: dshm
         emptyDir:
           medium: Memory
@@ -66,13 +73,13 @@ spec:
       {{- end }}
       {{- end }}
 
+      {{- if .Values.identity }}
       initContainers:
       - name: apps-sidecar
-        # image: us.gcr.io/scytale-registry/aws-cli:latest
         image: tsidentity/tornjak-example-sidecar:v0.2
         imagePullPolicy: Always
         # command: ["sleep"]
-        #args: ["1000000000"]
+        # args: ["1000000000"]
         command: ["/usr/local/bin/run-sidecar-bash.sh"]
         args:
           - "/usr/local/bin/inputfile.txt"
@@ -80,14 +87,11 @@ spec:
         - name: SOCKETFILE
           value: "/run/spire/sockets/agent.sock"
         - name: ROLE
-          value: "gtorole"
+          value: {{ .Values.identity.vaultrole }}
         - name: VAULT_ADDR
           # Provide address to your VAULT server
-          value: "http://tsi-vault-tsi-vault.gto-demo-02-9d995c4a8c7c5f281ce13d5467ff6a94-0000.us-east.containers.appdomain.cloud"
-        # make openshift local happy
+          value: {{ .Values.identity.vaultAddr }}
         securityContext:
-          # runAsNonRoot: true
-          # allowPrivilegeEscalation: false
           # privileged is needed to create socket and bundle files
           privileged: true
         volumeMounts:
@@ -95,11 +99,13 @@ spec:
           - name: spire-agent-socket
             mountPath: /run/spire/sockets
             readOnly: true
-          - name: db-config
+          - name: secretPath
             mountPath: /run/db
           - name: mount-inputfile
             mountPath: /usr/local/bin/inputfile.txt
             subPath: inputfile.txt
+        {{- end }}
+
       containers:
       - name: ray-worker
         image: {{ .Values.image }}
@@ -112,11 +118,14 @@ spec:
         # object store. If you do not provide this, Ray will fall back to
         # /tmp which cause slowdowns if is not a shared memory volume.
         volumeMounts:
-          - mountPath: /home/aws
-            name: db-config
-            readOnly: true
           - mountPath: /dev/shm
             name: dshm
+          {{- if .Values.identity }}
+          - mountPath: {{ .Values.identity.mountDir }}
+            name: secretPath
+            readOnly: true
+          {{- end }}
+
         {{- if .Values.pvcs }}
         {{- if .Values.pvcs.rayWorkerType }}
         {{- range $key, $val := .Values.pvcs.rayWorkerType }}
