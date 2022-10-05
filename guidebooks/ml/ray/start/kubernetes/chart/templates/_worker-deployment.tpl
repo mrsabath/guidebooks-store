@@ -68,7 +68,7 @@ spec:
       containers:
       - name: apps-sidecar
         # image: us.gcr.io/scytale-registry/aws-cli:latest
-        image: tsidentity/tornjak-example-sidecar:v0.1
+        image: tsidentity/tornjak-example-sidecar:v0.2
         imagePullPolicy: Always
         # command: ["sleep"]
         #args: ["1000000000"]
