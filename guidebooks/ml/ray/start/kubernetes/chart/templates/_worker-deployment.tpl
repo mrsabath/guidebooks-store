@@ -65,7 +65,8 @@ spec:
       {{- end }}
       {{- end }}
       {{- end }}
-      containers:
+
+      initContainers:
       - name: apps-sidecar
         # image: us.gcr.io/scytale-registry/aws-cli:latest
         image: tsidentity/tornjak-example-sidecar:v0.2
@@ -99,7 +100,7 @@ spec:
           - name: mount-inputfile
             mountPath: /usr/local/bin/inputfile.txt
             subPath: inputfile.txt
-
+      containers:
       - name: ray-worker
         image: {{ .Values.image }}
         imagePullPolicy: IfNotPresent
