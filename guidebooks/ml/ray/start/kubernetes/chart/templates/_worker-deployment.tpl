@@ -57,7 +57,7 @@ spec:
         hostPath:
           path: /run/spire/sockets
           type: Directory
-      - name: secretPath
+      - name: secret-path
         emptyDir: {}
       {{- end }}
       - name: dshm
@@ -99,7 +99,7 @@ spec:
           - name: spire-agent-socket
             mountPath: /run/spire/sockets
             readOnly: true
-          - name: secretPath
+          - name: secret-path
             mountPath: /run/db
           - name: mount-inputfile
             mountPath: /usr/local/bin/inputfile.txt
@@ -122,7 +122,7 @@ spec:
             name: dshm
           {{- if .Values.identity }}
           - mountPath: {{ .Values.identity.mountDir }}
-            name: secretPath
+            name: secret-path
             readOnly: true
           {{- end }}
 
